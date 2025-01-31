@@ -1,0 +1,58 @@
+# Byte-compiled / cached files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.env
+.venv/
+env/
+ENV/
+venv.bak/
+
+# VS Code settings and workspace folders
+.vscode/
+
+# SQLite database files
+*.sqlite3
+*.db
+*.sqlite
+
+# Flask environment variables
+instance/
+config.py
+.env
+
+# Logs and debug files
+logs/
+*.log
+*.out
+
+# Cache and temporary files
+*.swp
+*.swo
+*.swn
+.cache/
+.temp/
+
+# Python package files
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Jupyter Notebook checkpoints (if used)
+.ipynb_checkpoints/
+
+# Compiled C extensions
+*.so
+
+# MacOS files
+.DS_Store
+
+# Linux system files
+*.pid
+*.seed
+
+# Windows system files
+Thumbs.db
+desktop.ini

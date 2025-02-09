@@ -1,11 +1,36 @@
-{% extends "layout.html" %}
+<!DOCTYPE html>
+<html lang="en">
 
-{% block title %}
-Home page
-{% endblock %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/user_dash.css">
+
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <!--<a class="navbar-brand" href="#">User Dashboard</a>-->
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}">Login</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('register') }}">Register</a></li>
+                </ul>
+                <form class="d-flex">
+                    <input class="form-control me-2" type="search" placeholder="Search">
+                    <button class="btn btn-outline-success" type="submit">Search</button>
+                </form>
+                <span class="welcome-text">Welcome to Quiz master</span>
+            </div>
+        </div>
+    </nav>
 
 
-{% block content %}
-<h1>home page</h1>
-<P>Hello good night!!!</P>
-{% endblock %}
+    <h1>Welcome to Quiz master</h1>
+    <h3>Push yourself though atempting quiz.</h3>
+    <p>Check yourself and try to give your best.</p>
+</body>
+</html>

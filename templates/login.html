@@ -1,30 +1,33 @@
-{% extends "layout.html" %}
+<!DOCTYPE html>
+<html lang="en">
 
-{% block title %}
-Login Page
-{% endblock %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 
-{% block style %}
-<link rel="stylesheet" href="/static/login.css">
-{% endblock %}
+    <link rel="stylesheet" href="/static/login.css">
+</head>
 
-{% block content %}
-<div class="container">
-    <h1 class="display-1">Login</h1>
-    <form action="" class="form" method="post">
-        <div class="form-group">
-            <label for="username" class="form-label">Username</label>
-            <input type="text" id="input1" name="username" required class="form-control">
-        </div>
-        <div class="form-group">
-            <label for="password" class="form-label">Password</label>
-            <input type="password" id="input2" name="password" required class="form-control">
-        </div>
-        <div class="form-group">
-            <input type="submit" class="btn btn-primary" value="Login"><br>
-            Don't have an account? <a href="{{ url_for('register') }}">Register here</a>
-        </div>
-    </form>
-</div>
+<body>
+    <div class="container">
+        <h1 class="display-1">Login</h1>
+        <form action="" class="form" method="post">
+            <div class="form-group">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" id="input1" name="username" required class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" id="input2" name="password" required class="form-control">
+            </div>
+            <div class="form-group">
+                <input type="submit" class="btn btn-primary" value="Login"><br>
+                Don't have an account? <a href="{{ url_for('register') }}">Register here</a>
+            </div>
+        </form>
+    </div>
+</body>
 
-{% endblock %}
+</html>

@@ -19,20 +19,23 @@
     <div class="container">
         <div class="addsub1">
             <h3>New Subject</h3>
-            <div class="mb-3">
-                <label for="exampleFormControlInput1" class="form-label">Name</label>
-                <input type="text" class="form-control" id="exampleFormControlInput1" placeholder="Subject name">
-            </div>
-            <div class="mb-3">
-                <label for="exampleFormControlTextarea1" class="form-label">Description</label>
-                <textarea class="form-control" id="exampleFormControlTextarea1" rows="3"
-                    placeholder="Write description about the subject"></textarea>
-            </div>
-            <div class="add_sub">
-                <input type="button" class="btn btn-success mx-2" value="Save">
-                <a href="{{ url_for('admin_dash') }}" type="button" class="btn btn-danger" name="sub_cancel">Cancel</a>
-            </div>
-
+            <form action="" method="post">
+                <div class="mb-3">
+                    <label for="subjectName" class="form-label">Name</label>
+                    <input type="text" class="form-control" id="subject-name" name="subject_name"
+                        placeholder="Subject name">
+                </div>
+                <div class="mb-3">
+                    <label for="add_desc" class="form-label">Description</label>
+                    <textarea class="form-control" id="subject-desc" name="subject_desc" rows="3"
+                        placeholder="Write description about the subject"></textarea>
+                </div>
+                <div class="add_sub">
+                    <input type="button" class="btn btn-success mx-2" value="Save">
+                    <a href="{{ url_for('admin_dash') }}" type="button" class="btn btn-danger"
+                        name="sub_cancel">Cancel</a>
+                </div>
+            </form>
         </div>
     </div>
 </body>

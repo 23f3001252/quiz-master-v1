@@ -1,0 +1,59 @@
+{% extends "/user/layout2.html" %}
+
+
+{% block title %}
+User Dashboard
+{% endblock %}
+
+
+{% block content %}
+<h2>Welcome User</h2>
+<div class="container mt-4">
+    <h3 class="text-center my-2">Upcoming Quizzes</h3>
+    <div class="table-responsive">
+        <table class="table table-bordered text-center">
+            <thead class="table-primary">
+                <tr>
+                    <th>ID</th>
+                    <th>No. of Questions</th>
+                    <th>Date</th>
+                    <th>Duration (hh:mm)</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>05</td>
+                    <td>10</td>
+                    <td>xx/xx/yyyy</td>
+                    <td>00:10</td>
+                    <td>
+                        <button class="btn btn-info btn-sm">View</button>
+                        <button class="btn btn-success btn-sm">Start</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>10</td>
+                    <td>10</td>
+                    <td>xx/xx/yyyy</td>
+                    <td>00:10</td>
+                    <td>
+                        <button class="btn btn-info btn-sm">View</button>
+                        <button class="btn btn-success btn-sm">Start</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>15</td>
+                    <td>15</td>
+                    <td>xx/xx/yyyy</td>
+                    <td>00:30</td>
+                    <td>
+                        <button class="btn btn-info btn-sm">View</button>
+                        <button class="btn btn-success btn-sm">Start</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

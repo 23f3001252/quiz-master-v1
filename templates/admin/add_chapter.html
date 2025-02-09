@@ -19,22 +19,28 @@
     <div class="container">
         <div class="addchap1">
             <h3>New Chapter</h3>
-            <div class="mb-3">
-                <label for="exampleFormControlInput1" class="form-label">Name</label>
-                <input type="text" class="form-control" id="exampleFormControlInput1" placeholder="name">
-            </div>
-            <div class="mb-3">
-                <label for="exampleFormControlInput2" class="form-label">Subject</label>
-                <input type="text" class="form-control" id="exampleFormControlInput2" placeholder="subject">
-            </div>
-            <div class="mb-3">
-                <label for="description" class="form-label">Description</label>
-                <textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
-            </div>
-            <div class="add_sub">
-                <input type="button" class="btn btn-success mx-2" value="Save">
-                <a href="{{ url_for('admin_dash') }}" type="button" class="btn btn-danger" name="chap_cancel">Cancel</a>
-            </div>
+            <form action="" method="post">
+                <div class="mb-3">
+                    <label for="chapter_name" class="form-label">Name</label>
+                    <input type="text" class="form-control" id="chapter-1" name="chapter_name"
+                        placeholder="Chapter name">
+                </div>
+                <div class="mb-3">
+                    <label for="subject_name" class="form-label">Subject</label>
+                    <input type="text" class="form-control" id="chapter-2" name="subject_name"
+                        placeholder="Subject name">
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea class="form-control" id="chapter-desc" name="chapter_desc" rows="3"
+                        placeholder="Write something about chapter"></textarea>
+                </div>
+                <div class="add_sub">
+                    <input type="button" class="btn btn-success mx-2" value="Save">
+                    <a href="{{ url_for('admin_dash') }}" type="button" class="btn btn-danger"
+                        name="chap_cancel">Cancel</a>
+                </div>
+            </form>
         </div>
     </div>
 </body>

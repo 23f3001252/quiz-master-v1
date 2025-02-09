@@ -49,6 +49,17 @@ def add_question():
 def add_quiz():
     return render_template("/admin/add_quiz.html")
 
+@app.route("/admin/quiz_management/summary")
+def quiz_summary():
+    return render_template("/admin/admin_summary.html")
+
+#### User activities.
+@app.route("/user")
+def user_dash():
+    return render_template("/user/user_dash.html")
+
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)

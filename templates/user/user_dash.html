@@ -7,7 +7,7 @@ User Dashboard
 
 
 {% block content %}
-<h2>Welcome User</h2>
+<h2>Welcome {{username}}</h2>
 <div class="container mt-4">
     <h3 class="text-center my-2">Upcoming Quizzes</h3>
     <div class="table-responsive">
@@ -28,8 +28,8 @@ User Dashboard
                     <td>xx/xx/yyyy</td>
                     <td>00:10</td>
                     <td>
-                        <button class="btn btn-info btn-sm">View</button>
-                        <button class="btn btn-success btn-sm">Start</button>
+                        <a href="{{ url_for('view_quiz')}}" type="button" class="btn btn-info btn-sm">View</a>
+                        <a href="{{ url_for('start_quiz')}}" type="button" class="btn btn-success btn-sm">Start</a>
                     </td>
                 </tr>
                 <tr>
@@ -38,8 +38,8 @@ User Dashboard
                     <td>xx/xx/yyyy</td>
                     <td>00:10</td>
                     <td>
-                        <button class="btn btn-info btn-sm">View</button>
-                        <button class="btn btn-success btn-sm">Start</button>
+                        <a href="{{ url_for('view_quiz')}}" type="button" class="btn btn-info btn-sm">View</a>
+                        <a href="{{ url_for('start_quiz')}}" type="button" class="btn btn-success btn-sm">Start</a>
                     </td>
                 </tr>
                 <tr>
@@ -48,8 +48,8 @@ User Dashboard
                     <td>xx/xx/yyyy</td>
                     <td>00:30</td>
                     <td>
-                        <button class="btn btn-info btn-sm">View</button>
-                        <button class="btn btn-success btn-sm">Start</button>
+                        <a href="{{ url_for('view_quiz')}}" type="button" class="btn btn-info btn-sm">View</a>
+                        <a href="{{ url_for('start_quiz')}}" type="button" class="btn btn-success btn-sm">Start</a>
                     </td>
                 </tr>
             </tbody>

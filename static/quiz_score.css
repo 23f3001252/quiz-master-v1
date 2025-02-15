@@ -1,0 +1,75 @@
+/* Table Styling */
+.table {
+    background: rgb(198, 207, 194);
+    border-radius: 1rem;
+    padding: 5rem;
+    text-align: center;
+    justify-content: center;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Pagination Link */
+.text-primary {
+    font-weight: bold;
+    font-size: 18px;
+}
+
+/* Center Quiz Box */
+.quiz-container {
+    background-color: white;
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Question Number */
+.question-number {
+    display: flex;
+    align-items: center;
+    background-color: #f8f9fa;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-weight: bold;
+}
+
+.q-label {
+    color: blue;
+    margin-right: 5px;
+}
+
+.q-value {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+/* Timer */
+.timer {
+    background-color: #e0ecff;
+    padding: 10px;
+    border-radius: 20px;
+    font-weight: bold;
+}
+
+/* Question Statement */
+.question-statement h4 {
+    border: 2px dashed #007bff;
+    padding: 15px;
+    border-radius: 10px;
+}
+
+/* Options */
+.form-check {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+/* Buttons */
+.button-container button {
+    width: 150px;
+    margin: 10px;
+    font-size: 16px;
+}

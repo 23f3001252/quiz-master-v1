@@ -9,7 +9,7 @@ Admin dashboard
 {% endblock %}
 
 {% block content %}
-<h2>Welcome Admin</h2>
+<h2>Welcome {{username}}</h2>
 <div class="container2">
     <div class="chapter1">
         <!--<span class="border border-black">-->
@@ -119,9 +119,9 @@ Admin dashboard
                         <th scope="col">3</th>
                         <td>Relative motion</td>
                         <td>20</td>
-                        <td class="d-flex justify-content-center"><a href="" type="button" class="btn btn-danger mx-1"
-                                name="delete">Delete</a> <a href="" type="button" class="btn btn-primary"
-                                name="edit">Edit</a>
+                        <td class="d-flex justify-content-center">
+                            <a href="" type="button" class="btn btn-danger mx-1" name="delete">Delete</a>
+                            <a href="" type="button" class="btn btn-primary" name="edit">Edit</a>
                         </td>
                     </tr>
                     <tr class="text-center">

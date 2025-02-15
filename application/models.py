@@ -1,19 +1,19 @@
 from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
+
 from flask_bcrypt import Bcrypt
 from datetime import datetime
-from app import db, app
 
-#db = SQLAlchemy()
 bcrypt = Bcrypt()
-#db.init_app(app)
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
     username = db.Column(db.String(50), unique=True, nullable=False)
-    email = db.Column(db.String(50), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
-    role = db.Column(db.String(120), nullable=False)
+    type = db.Column(db.String(120), default="user", nullable=False)
 
     scores = db.relationship('Score', backref='user', lazy=True)
 
@@ -72,15 +72,15 @@ class Score(db.Model):
     total_scored = db.Column(db.Integer, nullable=False)
 
 
-with app.app_context():
-    db.create_all()
-    if not User.query.filter_by(username='admin').first():
-        admin = User(username='admin', email='admin@quizmaster.com', is_admin=True)
-        admin.set_password('admin123')  # Change password as needed
-        db.session.add(admin)
-        db.session.commit()
-        print("Admin user created.")
-    else:
-        print("Admin user already exists.")
+#with app.app_context():
+    #db.create_all()
+#if not User.query.filter_by(username='admin').first():
+#    admin = User(username='admin', email='admin@quizmaster.com', is_admin=True)
+#    admin.set_password('admin123')  # Change password as needed
+#    db.session.add(admin)
+#    db.session.commit()
+#    print("Admin user created.")
+#else:
+#    print("Admin user already exists.")
 
 

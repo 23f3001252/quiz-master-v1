@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View the Quiz</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/view_quiz.css">
+</head>
+
+<body>
+
+    <div class="container quiz-container">
+        <h3 class="text-center title">View the Quiz</h3>
+
+        <form>
+            <div class="mb-3">
+                <label class="form-label">ID :</label>
+                <input type="text" class="form-control" value="xx" readonly>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Subject :</label>
+                <input type="text" class="form-control subject" value="Mathematics" readonly>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Chapter :</label>
+                <input type="text" class="form-control chapter" value="Polynomial" readonly>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Number of Questions :</label>
+                <input type="text" class="form-control" value="05" readonly>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Scheduled Date :</label>
+                <input type="text" class="form-control" value="dd/mm/yyyy" readonly>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Duration (hh:mm) :</label>
+                <input type="text" class="form-control" value="00:10" readonly>
+            </div>
+
+            <div class="text-center">
+                <a href="{{ url_for('user_dash')}}" type="button" class="btn btn-primary">Close</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>

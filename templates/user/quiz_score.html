@@ -1,0 +1,56 @@
+{% extends "/user/layout2.html" %}
+
+
+{% block title %}
+Quiz Scores
+{% endblock %}
+
+{% block style %}
+<link href="/static/quiz_score.css" rel="stylesheet">
+{% endblock %}
+
+
+{% block content %}
+<!-- Quiz Scores Table -->
+<h2>Welcome User</h2>
+<div class="container mt-4">
+    <h4 class="text-center">Quiz Scores</h4>
+    <div class="table-responsive">
+        <table class="table table-bordered text-center">
+            <thead class="table-primary">
+                <tr>
+                    <th>ID</th>
+                    <th>No. of Questions</th>
+                    <th>Date</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>05</td>
+                    <td>xx/xx/yyyy</td>
+                    <td>3/5</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>15</td>
+                    <td>xx/xx/yyyy</td>
+                    <td>12/15</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td>20</td>
+                    <td>xx/xx/yyyy</td>
+                    <td>18/20</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="text-center mt-3">
+        <a href="#" class="text-primary">.....</a>
+    </div>
+</div>
+{% endblock %}

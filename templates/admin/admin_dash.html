@@ -1,159 +1,83 @@
 {% extends "layout.html" %}
 
 {% block title %}
-Admin dashboard
+Admin Dashboard
 {% endblock %}
 
 {% block style %}
-<link rel="stylesheet" href="/static/admin_dash.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='admin_dash.css') }}">
 {% endblock %}
 
 {% block content %}
-<h2>Welcome {{username}}</h2>
+<h2>Welcome {{ username }}</h2>
 <div class="container2">
     <div class="chapter1">
-        <!--<span class="border border-black">-->
+        {% if subjects %}
+        {% for subject in subjects %}
         <div class="headings">
-            <h3>Physics</h3>
+            <h3>{{ subject.name }}</h3>
         </div>
-        <table class="table" border="4px">
-            <thead>
-                <tr class="text-center">
-                    <th scope="col">S.N.</th>
-                    <th scope="col">Chapter name</th>
+        <table class="table table-bordered text-center">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">Ch.N.</th>
+                    <th scope="col">Chapter Name</th>
                     <th scope="col">No. of Questions</th>
                     <th scope="col">Actions</th>
                 </tr>
             </thead>
             <tbody class="table-group-divider">
-                <tr class="text-center">
-                    <th scope="col">1</th>
-                    <td>Motion</td>
-                    <td>30</td>
-                    <td class="d-flex justify-content-center"><a href="" type="button" class="btn btn-danger mx-1"
-                            name="delete">Delete</a> <a href="" type="button" class="btn btn-primary"
-                            name="edit">Edit</a>
+                {% set chapter_found = false %}
+                {% for chapter in chapters %}
+                {% if subject.id == chapter.subject_id %}
+                {% set chapter_found = true %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ chapter.name }}</td>
+                    <td>{{ chapter.quizzes|length }}</td>
+                    <td>
+                        <a href="{{ url_for('delete_chapter', chapter_id=chapter.id) }}"
+                            class="btn btn-danger">Delete</a>
+                        <a href="{{ url_for('edit_chapter', chapter_id=chapter.id) }}" class="btn btn-primary">Edit</a>
                     </td>
                 </tr>
-                <tr class="text-center">
-                    <th scope="col">2</th>
-                    <td>Force</td>
-                    <td>30</td>
-                    <td class="d-flex justify-content-center"><a href="" type="button" class="btn btn-danger mx-1"
-                            name="delete">Delete</a> <a href="" type="button" class="btn btn-primary"
-                            name="edit">Edit</a>
-                    </td>
+                {% endif %}
+                {% endfor %}
+
+                {% if not chapter_found %}
+                {% if chapter|length == 0 %}
+                <tr>
+                    <td colspan="4" class="text-muted">Chapter not available in {{ subject.name }}.</td>
                 </tr>
-                <tr class="text-center">
-                    <th scope="col">3</th>
-                    <td>Relative motion</td>
-                    <td>20</td>
-                    <td class="d-flex justify-content-center"><a href="" type="button" class="btn btn-danger mx-1"
-                            name="delete">Delete</a> <a href="" type="button" class="btn btn-primary"
-                            name="edit">Edit</a>
-                    </td>
-                </tr>
-                <tr class="text-center">
-                    <th scope="col">3</th>
-                    <td>Gravitation</td>
-                    <td>30</td>
-                    <td class="d-flex justify-content-center"><a href="" type="button" class="btn btn-danger mx-1"
-                            name="delete">Delete</a> <a href="" type="button" class="btn btn-primary"
-                            name="edit">Edit</a>
-                    </td>
-                </tr>
-                <tr class="text-center">
-                    <th scope="col">3</th>
-                    <td>Gravitation</td>
-                    <td>30</td>
-                    <td class="d-flex justify-content-center"><a href="" type="button" class="btn btn-danger mx-1"
-                            name="delete">Delete</a> <a href="" type="button" class="btn btn-primary"
-                            name="edit">Edit</a>
+                {% endif %}
+                {% endif %}
+
+                <tr>
+                    <td colspan="4">
+                        <a href="{{ url_for('delete_subject', subject_id=subject.id, username=username) }}"
+                            class="btn btn-danger mx-2">Delete Subject</a>
+                        <a href="{{ url_for('edit_subject', subject_id=subject.id, username=username) }}" class="btn btn-primary">Edit
+                            Subject</a>
                     </td>
                 </tr>
             </tbody>
         </table>
         <div>
-            <a href="{{ url_for('add_chapter') }}" class="btn btn-success mx-2 my-2" type="button" id="add-chapter">+Add
+            <a href="{{ url_for('add_chapter', username=username) }}" class="btn btn-success mx-2 my-3">+ Add
                 Chapter</a>
         </div>
-        <!--</span>-->
-    </div>
-
-
-    <div class="big_table">
-        <div class="chapter1">
-            <!--<span class="border border-black">-->
-            <div class="headings">
-                <h3>Physics</h3>
-            </div>
-            <table class="table" border="4px">
-                <thead>
-                    <tr class="text-center">
-                        <th scope="col">S.N.</th>
-                        <th scope="col">Chapter name</th>
-                        <th scope="col">No. of Questions</th>
-                        <th scope="col">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="table-group-divider">
-                    <tr class="text-center">
-                        <th scope="col">1</th>
-                        <td>Motion</td>
-                        <td>30</td>
-                        <td class="d-flex justify-content-center"><a href="" type="button" class="btn btn-danger mx-1"
-                                name="delete">Delete</a> <a href="" type="button" class="btn btn-primary"
-                                name="edit">Edit</a>
-                        </td>
-                    </tr>
-                    <tr class="text-center">
-                        <th scope="col">2</th>
-                        <td>Force</td>
-                        <td>30</td>
-                        <td class="d-flex justify-content-center"><a href="" type="button" class="btn btn-danger mx-1"
-                                name="delete">Delete</a> <a href="" type="button" class="btn btn-primary"
-                                name="edit">Edit</a>
-                        </td>
-                    </tr>
-                    <tr class="text-center">
-                        <th scope="col">3</th>
-                        <td>Relative motion</td>
-                        <td>20</td>
-                        <td class="d-flex justify-content-center">
-                            <a href="" type="button" class="btn btn-danger mx-1" name="delete">Delete</a>
-                            <a href="" type="button" class="btn btn-primary" name="edit">Edit</a>
-                        </td>
-                    </tr>
-                    <tr class="text-center">
-                        <th scope="col">3</th>
-                        <td>Gravitation</td>
-                        <td>30</td>
-                        <td class="d-flex justify-content-center"><a href="" type="button" class="btn btn-danger mx-1"
-                                name="delete">Delete</a> <a href="" type="button" class="btn btn-primary"
-                                name="edit">Edit</a>
-                        </td>
-                    </tr>
-                    <tr class="text-center">
-                        <th scope="col">3</th>
-                        <td>Gravitation</td>
-                        <td>30</td>
-                        <td class="d-flex justify-content-center"><a href="" type="button" class="btn btn-danger mx-1"
-                                name="delete">Delete</a> <a href="" type="button" class="btn btn-primary"
-                                name="edit">Edit</a>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <div>
-                <a href="{{ url_for('add_chapter') }}" class="btn btn-success mx-2 my-2" type="button"
-                    id="add-chapter">+Add Chapter</a>
-            </div>
-            <!--</span>-->
-        </div>
+        {% endfor %}
+        {% else %}
+        <h4 class="text-muted text-center">Subject not available.</h4>
+        {% endif %}
     </div>
 </div>
-<div id="add-subject">
-    <a href="{{ url_for('add_subject') }}" type="button" class="btn btn-success my-5">+Add Subject</a>
+
+<div id="add-subject" class="text-center">
+    <a href="{{ url_for('add_subject', username=username) }}" class="btn btn-success my-4">+ Add Subject</a>
 </div>
 
 {% endblock %}
+
+
+

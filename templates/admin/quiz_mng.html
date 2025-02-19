@@ -5,145 +5,67 @@ Quiz Management
 {% endblock %}
 
 {% block style %}
-<link rel="stylesheet" href="/static/admin_dash.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='quiz_mng.css') }}">
 {% endblock %}
 
 {% block content %}
-<h2>Welcome Admin</h2>
+<h2>Welcome {{ username }}</h2>
+
 <div class="container2">
     <div class="big_table">
-        <div class="chapter1">
-            <!--<span class="border border-black">-->
-            <div class="headings">
-                <h3>Quiz-1(Python)</h3>
-            </div>
-            <table class="table" border="4px">
-                <thead>
-                    <tr class="text-center">
-                        <th scope="col">ID</th>
-                        <th scope="col">Ques. Title</th>
-                        <th scope="col">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="table-group-divider">
-                    <tr class="text-center">
-                        <th scope="col">1</th>
-                        <td>Data types</td>
-                        <td class="d-flex justify-content-center"><a href="" type="button" class="btn btn-danger mx-1"
-                                name="delete">Delete</a> <a href="" type="button" class="btn btn-primary"
-                                name="edit">Edit</a>
-                        </td>
-                    </tr>
-                    <tr class="text-center">
-                        <th scope="col">2</th>
-                        <td>Strings</td>
-                        <td class="d-flex justify-content-center"><a href="" type="button" class="btn btn-danger mx-1"
-                                name="delete">Delete</a> <a href="" type="button" class="btn btn-primary"
-                                name="edit">Edit</a>
-                        </td>
-                    </tr>
-                    <tr class="text-center">
-                        <th scope="col">3</th>
-                        <td>Lists</td>
-                        <td class="d-flex justify-content-center"><a href="" type="button" class="btn btn-danger mx-1"
-                                name="delete">Delete</a> <a href="" type="button" class="btn btn-primary"
-                                name="edit">Edit</a>
-                        </td>
-                    </tr>
-                    <tr class="text-center">
-                        <th scope="col">3</th>
-                        <td>sets and dictionary</td>
-                        <td class="d-flex justify-content-center"><a href="" type="button" class="btn btn-danger mx-1"
-                                name="delete">Delete</a> <a href="" type="button" class="btn btn-primary"
-                                name="edit">Edit</a>
-                        </td>
-                    </tr>
-                    <tr class="text-center">
-                        <th scope="col">3</th>
-                        <td>functions</td>
-                        <td class="d-flex justify-content-center"><a href="" type="button" class="btn btn-danger mx-1"
-                                name="delete">Delete</a> <a href="" type="button" class="btn btn-primary"
-                                name="edit">Edit</a>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <div>
-                <a href="{{ url_for('add_question') }}" class="btn btn-success mx-2 my-2" type="button"
-                    id="add-chapter">+Add Question</a>
-            </div>
-            <!--</span>-->
-        </div>
-    </div>
-
-
-    <div class="big_table">
-        <div class="chapter1">
-            <!--<span class="border border-black">-->
-            <div class="headings">
-                <h3>Quiz-2(Python)</h3>
-            </div>
-            <table class="table" border="4px">
-                <thead>
-                    <tr class="text-center">
-                        <th scope="col">ID</th>
-                        <th scope="col">Ques. Title</th>
-                        <th scope="col">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="table-group-divider">
-                    <tr class="text-center">
-                        <th scope="col">1</th>
-                        <td>Data types</td>
-                        <td class="d-flex justify-content-center"><a href="" type="button" class="btn btn-danger mx-1"
-                                name="delete">Delete</a> <a href="" type="button" class="btn btn-primary"
-                                name="edit">Edit</a>
-                        </td>
-                    </tr>
-                    <tr class="text-center">
-                        <th scope="col">2</th>
-                        <td>Strings</td>
-                        <td class="d-flex justify-content-center"><a href="" type="button" class="btn btn-danger mx-1"
-                                name="delete">Delete</a> <a href="" type="button" class="btn btn-primary"
-                                name="edit">Edit</a>
-                        </td>
-                    </tr>
-                    <tr class="text-center">
-                        <th scope="col">3</th>
-                        <td>Lists</td>
-                        <td class="d-flex justify-content-center"><a href="" type="button" class="btn btn-danger mx-1"
-                                name="delete">Delete</a> <a href="" type="button" class="btn btn-primary"
-                                name="edit">Edit</a>
-                        </td>
-                    </tr>
-                    <tr class="text-center">
-                        <th scope="col">3</th>
-                        <td>sets and dictionary</td>
-                        <td class="d-flex justify-content-center"><a href="" type="button" class="btn btn-danger mx-1"
-                                name="delete">Delete</a> <a href="" type="button" class="btn btn-primary"
-                                name="edit">Edit</a>
-                        </td>
-                    </tr>
-                    <tr class="text-center">
-                        <th scope="col">3</th>
-                        <td>functions</td>
-                        <td class="d-flex justify-content-center"><a href="" type="button" class="btn btn-danger mx-1"
-                                name="delete">Delete</a> <a href="" type="button" class="btn btn-primary"
-                                name="edit">Edit</a>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <div>
-                <a href="{{ url_for('add_question') }}" class="btn btn-success mx-2 my-2" type="button"
-                    id="add-chapter">+Add Question</a>
-            </div>
-            <!--</span>-->
-        </div>
+        {% if quizzes %}
+            {% for quiz in quizzes %}
+                <div class="chapter1">
+                    <div class="headings">
+                        <h3>{{ quiz.title }} ({{ quiz.subject.name }})</h3>
+                    </div>
+                    <table class="table table-bordered text-center">
+                        <thead class="table-dark">
+                            <tr>
+                                <th scope="col">ID</th>
+                                <th scope="col">Question Title</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-group-divider">
+                            {% if quiz.questions %}
+                                {% for question in quiz.questions %}
+                                    <tr class="text-center">
+                                        <th scope="row">{{ loop.index }}</th>
+                                        <td>{{ question.question_statement }}</td>
+                                        <td class="d-flex justify-content-center">
+                                            <a href="{{ url_for('delete_question', question_id=question.id) }}" class="btn btn-danger mx-1">Delete</a>
+                                            <a href="{{ url_for('edit_question', question_id=question.id) }}" class="btn btn-primary">Edit</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="3" class="text-muted text-center">No questions available for this quiz.</td>
+                                </tr>
+                            {% endif %}
+                            
+                            <tr>
+                                <td colspan="3" class="d-flex justify-content-center">
+                                    <a href="{{ url_for('delete_quiz', quiz_id=quiz.id) }}" class="btn btn-danger mx-1">Delete Quiz</a>
+                                    <a href="{{ url_for('edit_quiz', quiz_id=quiz.id) }}" class="btn btn-primary">Edit Quiz</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div>
+                        <a href="{{ url_for('add_question', quiz_id=quiz.id) }}" class="btn btn-success mx-2 my-2">+ Add Question</a>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <h4 class="text-muted text-center">No quizzes available.</h4>
+        {% endif %}
     </div>
 </div>
-<div id="add-subject">
-    <a href="{{ url_for('add_quiz') }}" type="button" class="btn btn-success my-5">+Add Quiz</a>
+
+<div id="add-quiz" class="text-center">
+    <a href="{{ url_for('add_quiz') }}" class="btn btn-success my-5">+ Add Quiz</a>
 </div>
 
 {% endblock %}

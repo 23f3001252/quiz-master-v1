@@ -2,6 +2,16 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
+## ✅ Enable Foreign Key Support for SQLite
+#from sqlalchemy import event
+#from sqlalchemy.engine import Engine
+
+#@event.listens_for(Engine, "connect")
+#def enable_foreign_keys(dbapi_connection, connection_record):
+#    cursor = dbapi_connection.cursor()
+#    cursor.execute("PRAGMA foreign_keys=ON;")  # ✅ Enable foreign keys
+#    cursor.close()
+
 from flask_bcrypt import Bcrypt
 from datetime import datetime
 
@@ -36,7 +46,7 @@ class Chapter(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
-    subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)
+    subject_id = db.Column(db.Integer, db.ForeignKey('subject.id', ondelete="CASCADE"), nullable=False) #when a subject is deleted, its chapters are also deleted automatically.
 
     quizzes = db.relationship('Quiz', backref='chapter', lazy=True)
 

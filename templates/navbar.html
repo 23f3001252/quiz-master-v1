@@ -1,14 +1,12 @@
-<nav class="navbar navbar-expand-lg bg-body-tertiary">
-    <div class="container-fluid" style="background-color: rgba(64, 128, 207, 0.474); padding: 3px;">
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo03"
-            aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation"> 
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <!--<a class="navbar-brand" href="#">Navbar</a>-->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid" style="background-color: whitesmoke; margin-bottom: 0%;">
         <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+                    <a class="nav-link" href="{{ url_for('users_list') }}">Users</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('admin_dash', username=username) }}">Dashboard</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('quiz_management') }}">Quiz</a>
@@ -17,14 +15,14 @@
                     <a class="nav-link" href="">Summary</a>
                 </li>-->
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('login') }}">Logout</a>
+                    <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
                 </li>
             </ul>
             <form class="d-flex">
                 <input class="form-control me-2" type="search" placeholder="Search">
                 <button class="btn btn-outline-success" type="submit">Search</button>
             </form>
-            <span class="welcome-text mx-2">Welcome {{username}}</span>
+            <span class="welcome-text mx-2" style="color: blue; font-weight: bold;">Welcome {{username}}</span>
         </div>
     </div>
 </nav>

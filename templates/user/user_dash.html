@@ -12,7 +12,7 @@ User Dashboard
     <h3 class="text-center my-2">Upcoming Quizzes</h3>
     <div class="table-responsive">
         <table class="table table-bordered text-center">
-            <thead class="table-primary">
+            <thead class="table-dark">
                 <tr>
                     <th>ID</th>
                     <th>No. of Questions</th>
@@ -22,36 +22,18 @@ User Dashboard
                 </tr>
             </thead>
             <tbody>
+                {% for quiz in quizzes %}
                 <tr>
                     <td>05</td>
                     <td>10</td>
                     <td>xx/xx/yyyy</td>
                     <td>00:10</td>
                     <td>
-                        <a href="{{ url_for('view_quiz')}}" type="button" class="btn btn-info btn-sm">View</a>
-                        <a href="{{ url_for('start_quiz')}}" type="button" class="btn btn-success btn-sm">Start</a>
+                        <a href="{{ url_for('view_quiz', quiz_id=quiz.id) }}" class="btn btn-info btn-sm">View</a>
+                        <a href="{{ url_for('attempt_quiz', quiz_id=quiz.id) }}" class="btn btn-success btn-sm">Attempt</a>
                     </td>
                 </tr>
-                <tr>
-                    <td>10</td>
-                    <td>10</td>
-                    <td>xx/xx/yyyy</td>
-                    <td>00:10</td>
-                    <td>
-                        <a href="{{ url_for('view_quiz')}}" type="button" class="btn btn-info btn-sm">View</a>
-                        <a href="{{ url_for('start_quiz')}}" type="button" class="btn btn-success btn-sm">Start</a>
-                    </td>
-                </tr>
-                <tr>
-                    <td>15</td>
-                    <td>15</td>
-                    <td>xx/xx/yyyy</td>
-                    <td>00:30</td>
-                    <td>
-                        <a href="{{ url_for('view_quiz')}}" type="button" class="btn btn-info btn-sm">View</a>
-                        <a href="{{ url_for('start_quiz')}}" type="button" class="btn btn-success btn-sm">Start</a>
-                    </td>
-                </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>

@@ -2,23 +2,18 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
-## ✅ Enable Foreign Key Support for SQLite
-#from sqlalchemy import event
-#from sqlalchemy.engine import Engine
-
-#@event.listens_for(Engine, "connect")
-#def enable_foreign_keys(dbapi_connection, connection_record):
-#    cursor = dbapi_connection.cursor()
-#    cursor.execute("PRAGMA foreign_keys=ON;")  # ✅ Enable foreign keys
-#    cursor.close()
-
 from flask_bcrypt import Bcrypt
 from datetime import datetime
 
 bcrypt = Bcrypt()
 
+
+def generate_custom_id(model, prefix):
+    count = model.query.count() + 1
+    return f"{prefix}{100 + count}"
+
 class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String(10), primary_key=True, default=lambda: generate_custom_id(User, "US"))
     name = db.Column(db.String(50), nullable=False)
     username = db.Column(db.String(50), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
@@ -35,7 +30,7 @@ class User(db.Model):
 
 
 class Subject(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String(10), primary_key=True, default=lambda: generate_custom_id(Subject, "SB"))
     name = db.Column(db.String(100), unique=True, nullable=False)
     description = db.Column(db.Text, nullable=True)
 
@@ -43,7 +38,7 @@ class Subject(db.Model):
 
 
 class Chapter(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String(10), primary_key=True, default=lambda: generate_custom_id(Chapter, "CH"))
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
     subject_id = db.Column(db.Integer, db.ForeignKey('subject.id', ondelete="CASCADE"), nullable=False) #when a subject is deleted, its chapters are also deleted automatically.
@@ -52,20 +47,20 @@ class Chapter(db.Model):
 
 
 class Quiz(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String(10), primary_key=True, default=lambda: generate_custom_id(Quiz, "QZ"))
     title = db.Column(db.String(120), nullable=False)
     chapter_id = db.Column(db.Integer, db.ForeignKey('chapter.id'), nullable=False)
     date_of_quiz = db.Column(db.Date, nullable=False, default=datetime.utcnow)
     time_duration = db.Column(db.String(10), nullable=False)  # HH:MM format
     remarks = db.Column(db.Text, nullable=True)
 
-    questions = db.relationship('Question', backref='quiz', lazy=True)
+    questions = db.relationship('Question', backref='quiz', lazy=True, cascade="all, delete")
     scores = db.relationship('Score', backref='quiz', lazy=True)
 
 
 class Question(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.id'), nullable=False)
+    id = db.Column(db.String(10), primary_key=True, default=lambda: generate_custom_id(Question, "QS"))
+    quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.id', ondelete="CASECADE"), nullable=False)
     question_statement = db.Column(db.Text, nullable=False)
     option1 = db.Column(db.String(200), nullable=False)
     option2 = db.Column(db.String(200), nullable=False)
@@ -75,7 +70,7 @@ class Question(db.Model):
 
 
 class Score(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String(10), primary_key=True, default=lambda: generate_custom_id(Score, "SC"))
     quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     time_stamp_of_attempt = db.Column(db.DateTime, default=datetime.utcnow)

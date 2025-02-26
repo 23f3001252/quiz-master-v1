@@ -5,9 +5,12 @@ body {
 
 h2 {
     color: #333;
+    background-color: #50cb71;
+    border-radius: 1rem;
+    padding: 10px;
     font-weight: bold;
     text-align: center;
-    margin-top: 20px;
+    margin-top: 15px;
 }
 
 .container2 {
@@ -21,6 +24,7 @@ h2 {
 
 .headings {
     background-color: #007bff;
+    border-radius: 1rem;
     color: white;
     padding: 10px;
     text-align: center;

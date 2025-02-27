@@ -1,15 +1,55 @@
-{% extends "/user/layout2.html" %}
+{% extends '/user/layout2.html' %}
 
-{% block title %}
-Summary Charts
-{% endblock %}
+{% block title %}Quiz Summary{% endblock %}
 
 {% block style %}
-<link rel="stylesheet" href="/static/user_dash.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
 
 {% block content %}
+    <h2 style="padding: 15px;">Welcome {{ username }}</h2>
+    <div class="container mt-4">
+        <h3 class="text-center" style="background-color: rgb(104, 159, 211); color: black; padding: 10px; border-radius: 1rem;">Summary Charts</h3>
 
-<h2>Welcome {{username}}</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <h5>Subject wise no. of quizzes</h5>
+                <canvas id="subjectChart"></canvas>
+            </div>
 
+            <div class="col-md-6">
+                <h5>Month wise no. of quizzes attempted</h5>
+                <canvas id="monthChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const subjectData = {{ subject_data|tojson }};
+        const monthData = {{ month_data|tojson }};
+
+        new Chart(document.getElementById('subjectChart'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(subjectData),
+                datasets: [{
+                    label: 'Number of Quizzes',
+                    data: Object.values(subjectData),
+                    backgroundColor: ['#74b9ff', '#55efc4', '#fab1a0']
+                }]
+            }
+        });
+
+        new Chart(document.getElementById('monthChart'), {
+            type: 'pie',
+            data: {
+                labels: Object.keys(monthData),
+                datasets: [{
+                    label: 'Quizzes Attempted',
+                    data: Object.values(monthData),
+                    backgroundColor: ['#ff7675', '#fdcb6e', '#6c5ce7']
+                }]
+            }
+        });
+    </script>
 {% endblock %}

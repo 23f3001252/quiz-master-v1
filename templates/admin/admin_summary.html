@@ -1,15 +1,71 @@
 {% extends "layout.html" %}
 
-{% block title %}
-Summary Charts
-{% endblock %}
+{% block title %}Score Summary{% endblock %}
 
 {% block style %}
-<link rel="stylesheet" href="/static/admin_dash.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='admin_dash.css') }}">
 {% endblock %}
 
 {% block content %}
 
-<h2>Welcome Admin</h2>
+<h2 class="text-center">Welcome {{ username }}</h2>
+<h3 class="text-center" style="background-color: rgb(50, 125, 196); color: white; padding: 10px; border-radius: 1rem;">Summary Charts</h3>
+
+
+<div class="container mt-4">
+    <div class="row">
+        <!-- Bar Chart for Subject wise Top Scores -->
+        <div class="col-md-6">
+            <h4 class="text-center">Subject wise top scores</h4>
+            <canvas id="barChart"></canvas>
+        </div>
+
+        <!-- Pie Chart for Subject wise User Attempts -->
+        <div class="col-md-6">
+            <h4 class="text-center">Subject wise user attempts</h4>
+            <canvas id="pieChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Ensure JS variables have safe fallbacks to prevent errors
+    const barChartData = {{ bar_chart_data | tojson | safe }} || [];
+    const barLabels = barChartData.map(data => data.subject);
+    const barScores = barChartData.map(data => data.score);
+
+    const pieChartData = {{ pie_chart_data | tojson | safe }} || [];
+    const pieLabels = pieChartData.map(data => data.subject);
+    const pieCounts = pieChartData.map(data => data.count);
+
+    // Bar Chart
+    new Chart(document.getElementById('barChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: barLabels,
+            datasets: [{
+                label: 'Top Scores by Subject',
+                data: barScores,
+                backgroundColor: ['#4caf50', '#ff9800', '#2196f3'],
+            }]
+        }
+    });
+
+    // Pie Chart
+    new Chart(document.getElementById('pieChart').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: pieLabels,
+            datasets: [{
+                label: 'User Attempts',
+                data: pieCounts,
+                backgroundColor: ['#f44336', '#ffeb3b', '#03a9f4'],
+            }]
+        }
+    });
+</script>
 
 {% endblock %}

@@ -7,52 +7,79 @@
     <title>Quiz Question</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/quiz_score.css">
+    <script>
+        // Convert quiz time duration (HH:MM) to total seconds
+        const timeParts = "{{ quiz.time_duration }}".split(":");
+        let timeRemaining = parseInt(timeParts[0]) * 3600 + parseInt(timeParts[1]) * 60;
+
+        function updateTimer() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+
+            // Format and display time as MM:SS
+            document.getElementById('timer').textContent = `Time Remaining: ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+            // Auto-submit form when time reaches zero
+            if (timeRemaining <= 0) {
+                clearInterval(timerInterval);
+                alert('Time is up! Submitting your quiz.');
+                document.querySelector('form').submit();
+            } else {
+                timeRemaining--;
+            }
+        }
+
+        // Start countdown timer
+        window.addEventListener('DOMContentLoaded', (event) => {
+            updateTimer();
+            const timerInterval = setInterval(updateTimer, 1000);
+        });
+    </script>
 </head>
 
 <body>
-
     <div class="container quiz-container">
-        <div class="d-flex justify-content-between align-items-center">
-            <div class="question-number">
-                <span class="q-label">QNo.</span>
-                <span class="q-value">3/15</span>
-            </div>
+        <form method="post" action="{{ url_for('attempt_quiz', quiz_id=quiz.id) }}">
+            {% if questions %}
             <div class="timer">
-                <span>⏳ 00:13:52</span>
+                <span id="timer">Time Remaining: {{ quiz.time_duration }}</span>
             </div>
-        </div>
+            {% for question in questions %}
+            <div class="question-statement text-center mt-4">
+                <div class="question-number">
+                    <span class="q-label">QNo.</span>
+                    <span class="q-value">{{ loop.index }}/{{ questions|length }}</span>
+                </div>
+                <h4>{{ question.question_statement }}</h4>
+            </div>
 
-        <div class="question-statement text-center mt-4">
-            <h4>......Question Statement......</h4>
-        </div>
+            <div class="options-container mt-4">
+                {% for option_number in range(1, 5) %}
+                {% set option_label = 'option' ~ option_number %}
+                {% if question[option_label] %}
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="question_{{ question.id }}"
+                        id="option{{ option_number }}" value="{{ option_number }}">
+                    <label class="form-check-label" for="option{{ option_number }}">
+                        {{ option_number }}) {{ question[option_label] }}
+                    </label>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+            {% endfor %}
 
-        <div class="options-container mt-4">
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="option" id="option1">
-                <label class="form-check-label" for="option1">1) Option....</label>
+            <div class="button-container text-center mt-4">
+                <button type="submit" name="action" value="submit" class="btn btn-success">Submit</button>
+                <a href="{{ url_for('user_dash', username=username) }}" class="btn btn-danger">Cancel</a>
             </div>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="option" id="option2">
-                <label class="form-check-label" for="option2">2) Option....</label>
+            {% else %}
+            <div class="text-center mt-4">
+                <h4>No questions available for this quiz.</h4>
             </div>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="option" id="option3" checked>
-                <label class="form-check-label" for="option3">3) Option....</label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="option" id="option4">
-                <label class="form-check-label" for="option4">4) Option....</label>
-            </div>
-        </div>
-
-        <div class="button-container text-center mt-4">
-            <button class="btn btn-primary">Save and Next</button>
-            <button class="btn btn-success">Submit</button>
-        </div>
+            {% endif %}
+        </form>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
 
 </html>

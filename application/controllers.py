@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime, timedelta
+from sqlalchemy import func
 from flask import current_app as app
 from .models import *
 
@@ -161,6 +163,8 @@ def edit_chapter(chapter_id):
 @app.route("/admin/delete_chapter/<chapter_id>")
 def delete_chapter(chapter_id):
     chapter = Chapter.query.get_or_404(chapter_id)
+    Quiz.query.filter_by(chapter_id=chapter.id).delete()
+
     db.session.delete(chapter)
     db.session.commit()
     return redirect(url_for("admin_dash", username=session["username"]))
@@ -214,6 +218,7 @@ def delete_quiz(quiz_id):
     quiz = Quiz.query.get_or_404(quiz_id)
 
     Question.query.filter_by(quiz_id=quiz.id).delete()
+    Score.query.filter_by(quiz_id=quiz_id).delete()
     db.session.delete(quiz)
     db.session.commit()
     flash("Quiz deleted successfully!", "success")
@@ -274,6 +279,58 @@ def delete_question(question_id):
     flash("Question deleted successfully!", "success")
     return redirect(url_for("quiz_management"))
 
+# ==========================  ADMIN SCORE MANAGEMENT  ==========================
+
+@app.route("/admin/cleanup_scores")
+def cleanup_scores():
+    if "username" not in session or session["username"] != "admin":
+        flash("Unauthorized access!", "danger")
+        return redirect(url_for("login"))
+
+    # Find and delete all scores linked to deleted quizzes
+    scores = Score.query.all()
+    for score in scores:
+        if score.quiz is None:  # If quiz no longer exists
+            db.session.delete(score)
+
+    db.session.commit()
+    return redirect(url_for("admin_dash", username=session["username"]))
+
+
+@app.route('/admin_summary/<username>')
+def admin_summary(username):
+    if "username" not in session or username != session["username"]:
+        flash("Unauthorized access!", "danger")
+        return redirect(url_for("login"))
+
+    # Top scores for bar chart
+    top_scores = db.session.query(
+        Subject.name,
+        func.coalesce(func.max(Score.total_scored), 0).label('max_score')
+    ).join(Chapter, Subject.id == Chapter.subject_id)\
+     .join(Quiz, Chapter.id == Quiz.chapter_id)\
+     .outerjoin(Score, Quiz.id == Score.quiz_id)\
+     .group_by(Subject.name).all()
+
+    bar_chart_data = [{"subject": subject or "Unknown", "score": score or 0} for subject, score in top_scores]
+
+    # User attempts for pie chart
+    user_attempts = db.session.query(
+        Subject.name,
+        func.count(Score.id).label('attempt_count')
+    ).join(Chapter, Subject.id == Chapter.subject_id)\
+     .join(Quiz, Chapter.id == Quiz.chapter_id)\
+     .join(Score, Quiz.id == Score.quiz_id)\
+     .group_by(Subject.name).all()
+
+    pie_chart_data = [{"subject": subject or "Unknown", "count": count or 0} for subject, count in user_attempts]
+
+    return render_template(
+        'admin/admin_summary.html',username=username,
+        bar_chart_data=bar_chart_data or [],
+        pie_chart_data=pie_chart_data or []
+    )
+
 
 # ==========================  USER DASHBOARD AND QUIZ ATTEMPT  ==========================
 
@@ -290,20 +347,28 @@ def user_dash(username):
 
 @app.route("/user/attempt_quiz/<quiz_id>", methods=["GET", "POST"])
 def attempt_quiz(quiz_id):
-    if "username" not in session or "user_id" not in session:
+    if "username" not in session:
         flash("Please log in first.", "danger")
         return redirect(url_for("login"))
 
     quiz = Quiz.query.get_or_404(quiz_id)
     questions = quiz.questions
     username = session["username"]
-
+    duration = int(quiz.time_duration.split(":")[0]) * 60 + int(quiz.time_duration.split(":")[1])
+    
     if request.method == "POST":
+        start_time = datetime.strptime(session.get("start_time"), "%Y-%m-%d %H:%M:%S") # type: ignore
+        end_time = start_time + timedelta(seconds=duration)
+        
+        if datetime.utcnow() > end_time:
+            return "Time is up! Your quiz was auto-submitted."
+            #return redirect(url_for("user_dash", username=session["username"], quiz_id=quiz_id))
+
         total_score = 0
         for question in questions:
             selected_option = request.form.get(f"question_{question.id}")
             if selected_option and int(selected_option) == question.correct_option:
-                total_score += 5
+                total_score += 1
 
         new_score = Score(
             id=generate_custom_id(Score, "SC"), # type: ignore
@@ -314,10 +379,12 @@ def attempt_quiz(quiz_id):
         db.session.add(new_score)
         db.session.commit()
 
-        flash(f"You scored {total_score}/{len(questions)}!", "success")
-        return redirect(url_for("quiz_summary", username=username, quiz_id=quiz_id))
+        return f"You have successfully attempted your quiz. You scored {total_score}/{len(questions)*5}!"
+        #return redirect(url_for("user_dash", username=username, quiz_id=quiz_id))
 
-    return render_template("user/attempt_quiz.html", quiz=quiz, questions=questions, username=username)
+    session["start_time"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    return render_template("user/attempt_quiz.html", quiz=quiz, questions=questions, duration=duration, username=session["username"])
+
 
 @app.route("/user/view_quiz/<quiz_id>")
 def view_quiz(quiz_id):
@@ -329,31 +396,63 @@ def view_quiz(quiz_id):
     username = session["username"]
     return render_template("user/view_quiz.html", quiz=quiz, username=username)
 
+@app.route("/user/quiz_score/<username>")
+def quiz_score(username):
+    if "username" not in session or session["username"] != username:
+        flash("Unauthorized access!", "danger")
+        return redirect(url_for("login"))
+    
+    user_id = session["user_id"]
+    scores = Score.query.filter_by(user_id=user_id).all()
+
+    return render_template("user/quiz_score.html", username=username, scores=scores) # type: ignore
 
 # ==========================  SCORE MANAGEMENT AND QUIZ RESULT DISPLAY  ==========================
 
-@app.route("/user/quiz_summary/<username>/<quiz_id>")
-def quiz_summary(username, quiz_id):
-    if "username" not in session or session["username"] != username:
-        flash("Unauthorized access!", "danger")
-        return redirect(url_for("login"))
+@app.route('/user/quiz_summary/<username>')
+def quiz_summary(username):
+    if 'username' not in session or session['username'] != username:
+        flash('Unauthorized access!', 'danger')
+        return redirect(url_for('login'))
 
-    quiz = Quiz.query.get_or_404(quiz_id)
-    user_scores = Score.query.filter_by(user_id=session["user_id"], quiz_id=quiz.id).all()
+    user_id = session.get('user_id')
 
-    return render_template("user/quiz_summary.html", quiz=quiz, user_scores=user_scores, username=username)
+    # Fetch quizzes and scores for the user
+    user_scores = Score.query.filter_by(user_id=user_id).all()
+
+    # Count quizzes by subject
+    subject_counts = db.session.query(Subject.name, db.func.count(Quiz.id))\
+        .join(Chapter, Subject.id == Chapter.subject_id)\
+        .join(Quiz, Chapter.id == Quiz.chapter_id)\
+        .filter(Score.user_id == user_id)\
+        .group_by(Subject.name).all()
+
+    subject_data = {subject: count for subject, count in subject_counts}
+
+    # Count quizzes by month
+    month_counts = db.session.query(db.func.strftime('%m', Quiz.date_of_quiz), db.func.count(Quiz.id))\
+        .join(Score, Quiz.id == Score.quiz_id)\
+        .filter(Score.user_id == user_id)\
+        .group_by(db.func.strftime('%m', Quiz.date_of_quiz)).all()
+
+    month_data = {month: count for month, count in month_counts}
+
+    return render_template('user/quiz_summary.html', 
+                           username=username, 
+                           subject_data=subject_data, 
+                           month_data=month_data)
 
 
-@app.route("/user/past_attempts/<username>")
-def past_attempts(username):
-    if "username" not in session or session["username"] != username:
-        flash("Unauthorized access!", "danger")
-        return redirect(url_for("login"))
+#@app.route("/user/past_attempts/<username>")
+#def past_attempts(username):
+#    if "username" not in session or session["username"] != username:
+#        flash("Unauthorized access!", "danger")
+#        return redirect(url_for("login"))
 
-    user_scores = Score.query.filter_by(user_id=session["user_id"]).all()
-    quizzes = {score.quiz_id: Quiz.query.get(score.quiz_id) for score in user_scores}
+#    user_scores = Score.query.filter_by(user_id=session["user_id"]).all()
+#    quizzes = {score.quiz_id: Quiz.query.get(score.quiz_id) for score in user_scores}
 
-    return render_template("user/past_attempts.html", user_scores=user_scores, quizzes=quizzes, username=username)
+#    return render_template("user/past_attempts.html", user_scores=user_scores, quizzes=quizzes, username=username)
 
 
 # ==========================  QUIZ TIME AND DURATION MANAGEMENT  ==========================
@@ -367,64 +466,13 @@ def quiz_time_check(quiz_id):
     quiz = Quiz.query.get_or_404(quiz_id)
     current_time = datetime.utcnow()
 
-    if current_time > quiz.date_of_quiz:
-        flash("This quiz is no longer available.", "warning")
-        return redirect(url_for("user_dash", username=session["username"]))
+    # Convert quiz.date_of_quiz (date) to datetime for comparison
+    quiz_datetime = datetime.combine(quiz.date_of_quiz, datetime.min.time())
+
+    if current_time > quiz_datetime:  #quiz date with a time of 00:00:00,so both sides use datetime not only date().
+        return "This quiz is no longer available. Timeline is over!"
 
     return redirect(url_for("attempt_quiz", quiz_id=quiz_id))
-
-## ==========================  USER FUNCTIONALITY  ==========================
-#@app.route("/user/dashboard/<username>")
-#def user_dash(username):
-#    subjects = Subject.query.all()
-#    quizzes = Quiz.query.all()
-#    return render_template("user/user_dash.html", username=username, subjects=subjects, quizzes=quizzes)
-
-#@app.route("/user/quiz/<int:quiz_id>")
-#def start_quiz(quiz_id):
-#    quiz = Quiz.query.get_or_404(quiz_id)
-#    questions = Question.query.filter_by(quiz_id=quiz_id).all()
-#    return render_template("user/start_quiz.html", quiz=quiz, questions=questions, username=session["username"])
-
-#@app.route("/user/quiz/submit/<int:quiz_id>", methods=["POST"])
-#def submit_quiz(quiz_id):
-#    quiz = Quiz.query.get_or_404(quiz_id)
-#    questions = Question.query.filter_by(quiz_id=quiz_id).all()
-
-#    total_score = 0
-#    for question in questions:
-#        user_answer = request.form.get(f"question_{question.id}")
-#        if user_answer and int(user_answer) == question.correct_option:
-#            total_score += 1
-
-#    new_score = Score(
-#        quiz_id=quiz_id,
-#        user_id=session["user_id"],
-#        total_scored=total_score
-#    )
-#    db.session.add(new_score)
-#    db.session.commit()
-
-#    flash(f"You scored {total_score}/{len(questions)}!", "success")
-#    return redirect(url_for("user_dash", username=session["username"]))
-
-#@app.route("/user/quiz_history/<username>")
-#def quiz_history(username):
-#    user = User.query.filter_by(username=username).first()
-#    scores = Score.query.filter_by(user_id=user.id).all()
-#    return render_template("user/quiz_score.html", username=username, scores=scores)
-
-## ==========================  ADMIN SEARCH FUNCTIONALITY  ==========================
-#@app.route("/admin/search", methods=["GET"])
-#def admin_search():
-#    query = request.args.get("query")
-    
-#    users = User.query.filter(User.username.ilike(f"%{query}%")).all()
-#    subjects = Subject.query.filter(Subject.name.ilike(f"%{query}%")).all()
-#    quizzes = Quiz.query.filter(Quiz.title.ilike(f"%{query}%")).all()
-
-#    return render_template("admin/search_results.html", users=users, subjects=subjects, quizzes=quizzes, query=query)
-
 
 # ==========================  LOGOUT  ==========================
 @app.route("/logout")
@@ -432,7 +480,6 @@ def logout():
     session.pop("username", None)
     flash("Logged out successfully.", "success")
     return redirect(url_for("login"))
-
 
 # ==========================  USER MANAGEMENT  ==========================
 @app.route("/admin/users")

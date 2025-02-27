@@ -34,7 +34,7 @@ class Subject(db.Model):
     name = db.Column(db.String(100), unique=True, nullable=False)
     description = db.Column(db.Text, nullable=True)
 
-    chapters = db.relationship('Chapter', backref='subject', lazy=True)
+    chapters = db.relationship('Chapter', backref='subject', lazy=True, cascade='all, delete')
 
 
 class Chapter(db.Model):
@@ -43,19 +43,19 @@ class Chapter(db.Model):
     description = db.Column(db.Text, nullable=True)
     subject_id = db.Column(db.Integer, db.ForeignKey('subject.id', ondelete="CASCADE"), nullable=False) #when a subject is deleted, its chapters are also deleted automatically.
 
-    quizzes = db.relationship('Quiz', backref='chapter', lazy=True)
+    quizzes = db.relationship('Quiz', backref='chapter', cascade="all, delete", lazy=True)
 
 
 class Quiz(db.Model):
     id = db.Column(db.String(10), primary_key=True, default=lambda: generate_custom_id(Quiz, "QZ"))
     title = db.Column(db.String(120), nullable=False)
-    chapter_id = db.Column(db.Integer, db.ForeignKey('chapter.id'), nullable=False)
+    chapter_id = db.Column(db.Integer, db.ForeignKey('chapter.id', ondelete='CASCADE'), nullable=False)
     date_of_quiz = db.Column(db.Date, nullable=False, default=datetime.utcnow)
     time_duration = db.Column(db.String(10), nullable=False)  # HH:MM format
     remarks = db.Column(db.Text, nullable=True)
 
-    questions = db.relationship('Question', backref='quiz', lazy=True, cascade="all, delete")
-    scores = db.relationship('Score', backref='quiz', lazy=True)
+    questions = db.relationship('Question', backref='quiz', lazy=True, cascade='all, delete')
+    scores = db.relationship('Score', backref='quiz', lazy=True, cascade='all, delete')
 
 
 class Question(db.Model):
@@ -71,21 +71,9 @@ class Question(db.Model):
 
 class Score(db.Model):
     id = db.Column(db.String(10), primary_key=True, default=lambda: generate_custom_id(Score, "SC"))
-    quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.id'), nullable=False)
+    quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.id', ondelete='CASCADE'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     time_stamp_of_attempt = db.Column(db.DateTime, default=datetime.utcnow)
     total_scored = db.Column(db.Integer, nullable=False)
-
-
-#with app.app_context():
-    #db.create_all()
-#if not User.query.filter_by(username='admin').first():
-#    admin = User(username='admin', email='admin@quizmaster.com', is_admin=True)
-#    admin.set_password('admin123')  # Change password as needed
-#    db.session.add(admin)
-#    db.session.commit()
-#    print("Admin user created.")
-#else:
-#    print("Admin user already exists.")
 
 

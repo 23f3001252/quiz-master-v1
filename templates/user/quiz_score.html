@@ -1,6 +1,5 @@
 {% extends "/user/layout2.html" %}
 
-
 {% block title %}
 Quiz Scores
 {% endblock %}
@@ -9,48 +8,46 @@ Quiz Scores
 <link href="/static/quiz_score.css" rel="stylesheet">
 {% endblock %}
 
-
 {% block content %}
-<!-- Quiz Scores Table -->
-<h2>Welcome User</h2>
+<h2>Welcome {{ username }}</h2>
 <div class="container mt-4">
-    <h4 class="text-center">Quiz Scores</h4>
+    <h3 class="text-center">Quiz Scores</h3>
     <div class="table-responsive">
         <table class="table table-bordered text-center">
-            <thead class="table-primary">
+            <thead class="table-dark">
                 <tr>
-                    <th>ID</th>
+                    <th>Quiz ID</th>
+                    <th>Quiz Title</th>
                     <th>No. of Questions</th>
-                    <th>Date</th>
+                    <th>Date Attempted</th>
                     <th>Score</th>
                 </tr>
             </thead>
             <tbody>
+                {% if scores %}
+                {% for score in scores %}
+                {% if score.quiz %}
                 <tr>
-                    <td>1</td>
-                    <td>05</td>
-                    <td>xx/xx/yyyy</td>
-                    <td>3/5</td>
+                    <td>{{ score.quiz.id }}</td>
+                    <td>{{ score.quiz.title }}</td>
+                    <td>{{ score.quiz.questions|length }}</td>
+                    <td>{{ score.time_stamp_of_attempt.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ score.total_scored }}/{{ score.quiz.questions|length * 5 }}</td>
                 </tr>
+                {% endif %}
+                {% endfor %}
                 <tr>
-                    <td>2</td>
-                    <td>15</td>
-                    <td>xx/xx/yyyy</td>
-                    <td>12/15</td>
+                    <td colspan="5">
+                        <a href="{{ url_for('user_dash', username=username) }}" class="btn btn-success">Close</a>
+                    </td>
                 </tr>
+                {% else %}
                 <tr>
-                    <td>3</td>
-                    <td>20</td>
-                    <td>xx/xx/yyyy</td>
-                    <td>18/20</td>
+                    <td colspan="5">No quiz attempted till now.</td>
                 </tr>
+                {% endif %}
             </tbody>
         </table>
-    </div>
-
-    <!-- Pagination -->
-    <div class="text-center mt-3">
-        <a href="#" class="text-primary">.....</a>
     </div>
 </div>
 {% endblock %}

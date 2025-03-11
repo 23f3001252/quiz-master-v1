@@ -28,6 +28,7 @@ config.py
 logs/
 *.log
 *.out
+/static/images/generated/
 
 # Cache and temporary files
 *.swp

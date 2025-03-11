@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
+from sqlalchemy.exc import IntegrityError
+from functools import wraps
 from sqlalchemy import func
 from flask import current_app as app
 from .models import *
@@ -26,16 +28,20 @@ def login():
             if check_password_hash(this_user.password_hash, password):
                 session["user_id"] = this_user.id
                 session["username"] = username
+                session["type"] = "admin" if this_user.username == "admin" else "user"
+
                 flash("Logged in successfully.", "success")
+
                 if this_user.username == "admin":
                     return redirect(url_for('admin_dash', username=username))
-                return redirect(url_for('user_dash', username=username))
-            #flash("Incorrect password", "danger")
-            #return render_template('login.html')
-            return "Incorrect password."
-        #flash("User does not exist", "warning")
-        #return render_template('login.html')
-        return "User does not exist."
+                else:
+                    return redirect(url_for('user_dash', username=username))
+            else:
+                flash("Incorrect password.", "danger")
+                render_template("login.html")
+        else:
+            flash("User does not exist.", "danger")
+            render_template("login.html")
     return render_template('login.html')
 
 @app.route("/register", methods=["GET", "POST"])
@@ -47,60 +53,119 @@ def register():
         confirm_password = request.form.get('confirm_password')
 
         if not name or not username or not password or not confirm_password:
-            return "Please fill out all fields."
+            flash("Please fill out all fields.", "warning")
+            render_template("register.html")
         
         if password != confirm_password:
-            return "Passwords do not match"
+            flash("Passwords do not match", "danger")
+            render_template("register.html")
         
+        # Check if username already exists
         user = User.query.filter_by(username=username).first()
         if user:
-            flash('Username already exists.', 'warning')
-            return render_template('register.html')
-        
-        hashed_password = generate_password_hash(password)
-        new_user = User(id=generate_custom_id(User, "US"), name=name, username=username, password_hash=hashed_password) # type: ignore
-        db.session.add(new_user)
-        db.session.commit()
-        return redirect(url_for('login'))
+            flash("Username already exists.", "danger")
+            return render_template("register.html")
+
+        try:
+            hashed_password = generate_password_hash(password) # type: ignore
+            new_user = User(id=generate_custom_id(User, "US"), name=name, username=username, password_hash=hashed_password # type: ignore
+            )
+            db.session.add(new_user)
+            db.session.commit()
+
+            flash("You are successfully registered!", "success")
+            return redirect(url_for('login'))
+
+        except IntegrityError:
+            db.session.rollback()  # Prevent broken transactions
+            flash("Something went wrong. Please try again.", "danger")
+            return render_template("register.html")
     
     return render_template('register.html')
+
+# =========================== CHECK AUTHENTICATION ======================
+
+#Both admin and user authentication decorator
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if "username" not in session:
+            flash("Please log in to access this page.", "warning")
+            return redirect(url_for("login"))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# Admin authentication decorator
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if "username" not in session or session.get("type") != "admin":
+            flash("Access denied! Admin only.", "danger")
+            return redirect(url_for("login"))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# User authentication decorator
+def user_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if "username" not in session or session.get("type") != "user":
+            flash("Access denied! User only.", "danger")
+            return redirect(url_for("login"))
+        return f(*args, **kwargs)
+    return decorated_function
 
 
 # ==========================  ADMIN DASHBOARD  ==========================
 
 @app.route("/admin/dashboard/<username>")
+@admin_required
 def admin_dash(username):
-    if "username" not in session or session["username"] != username:
-        flash("Unauthorized access!", "danger")
-        return redirect(url_for("login"))
-
     subjects = Subject.query.all()
     chapters = Chapter.query.all()
-    quizzes = Quiz.query.all()
-    users = User.query.all()
-    return render_template("admin/admin_dash.html", username=username, subjects=subjects, chapters=chapters, quizzes=quizzes, users=users)
 
+    # Get count of questions for each chapter
+    chapter_question_counts = db.session.query(
+        Chapter.id,
+        func.count(Question.id).label('question_count')
+    ).join(Quiz, Chapter.id == Quiz.chapter_id)\
+     .outerjoin(Question, Quiz.id == Question.quiz_id)\
+     .group_by(Chapter.id).all()
+
+    # Convert to a dictionary for easy lookup in template
+    chapter_question_map = {chapter_id: count for chapter_id, count in chapter_question_counts}
+
+    return render_template(
+        "admin/admin_dash.html",
+        username=username,
+        subjects=subjects,
+        chapters=chapters,
+        chapter_question_map=chapter_question_map
+    )
 
 # ==========================  SUBJECT MANAGEMENT  ==========================
 
 @app.route("/admin/add_subject/<username>", methods=["GET", "POST"])
+@admin_required
 def add_subject(username):
     if request.method == "POST":
         name = request.form.get("subject_name")
         description = request.form.get("subject_desc")
         
         if Subject.query.filter_by(name=name).first():
-            flash("Subject already exists.", "warning")
+            flash("Subject already exists.", "danger")
             return render_template("admin/add_subject.html", username=username)
 
         new_subject = Subject(id=generate_custom_id(Subject, "SB"), name=name, description=description) # type: ignore
         db.session.add(new_subject)
         db.session.commit()
+        flash("Subject added successfully!", "success")
         return redirect(url_for("admin_dash", username=username))
     
     return render_template("admin/add_subject.html", username=username)
 
 @app.route("/admin/edit_subject/<subject_id>", methods=["GET", "POST"])
+@admin_required
 def edit_subject(subject_id):
     subject = Subject.query.get_or_404(subject_id)
 
@@ -109,44 +174,52 @@ def edit_subject(subject_id):
         subject.description = request.form.get("subject_desc")
 
         db.session.commit()
+        flash("Subject edited successfully!", "success")
         return redirect(url_for("admin_dash", username=session["username"]))
 
     return render_template("admin/edit_subject.html", subject=subject, username=session["username"])
 
 @app.route("/admin/delete_subject/<subject_id>")
+@admin_required
 def delete_subject(subject_id):
     subject = Subject.query.get_or_404(subject_id)
     Chapter.query.filter_by(subject_id=subject.id).delete()
     db.session.delete(subject)
     db.session.commit()
+    flash("subject deleted successfully!", "success")
     return redirect(url_for("admin_dash", username=session["username"]))
 
 
 # ==========================  CHAPTER MANAGEMENT  ==========================
 
 @app.route("/admin/add_chapter/<username>", methods=["GET", "POST"])
+@admin_required
 def add_chapter(username):
     if request.method == "POST":
         chapter_name = request.form.get("chapter_name")
         subject_name = request.form.get("subject_name")
         description = request.form.get("chapter_desc")
 
-        subject = Subject.query.filter_by(name=subject_name).first()
-        chapter = Chapter.query.filter_by(name=chapter_name).first()
+        subject = Subject.query.filter_by(name=subject_name).first() # type: ignore
         if not subject:
-            return "Subject not found! Please add the subject first."
+            flash("Subject not found! Please add the subject first.", "danger")
+            return render_template("admin/add_chapter.html", username=username)
         
+        chapter = Chapter.query.filter_by(name=chapter_name, subject_id=subject.id).first()
         if chapter :
-            return "Chapter already exist."
+            flash("Chapter already exist.", "info")
+            return render_template("admin/add_chapter.html", username=username)
         
         new_chapter = Chapter(id=generate_custom_id(Chapter, "CH"), name=chapter_name, description=description, subject_id=subject.id) # type: ignore
         db.session.add(new_chapter)
         db.session.commit()
+        flash("Chapter added successfully!", "success")
         return redirect(url_for("admin_dash", username=username))
     
     return render_template("admin/add_chapter.html", username=username)
 
 @app.route("/admin/edit_chapter/<chapter_id>", methods=["GET", "POST"])
+@admin_required
 def edit_chapter(chapter_id):
     chapter = Chapter.query.get_or_404(chapter_id)
     subject = Subject.query.get_or_404(chapter.subject_id)
@@ -156,30 +229,32 @@ def edit_chapter(chapter_id):
         chapter.description = request.form.get("chapter_desc")
 
         db.session.commit()
+        flash("Chapter edited successfully!", "success")
         return redirect(url_for("admin_dash", username=session["username"]))
 
     return render_template("admin/edit_chapter.html", chapter=chapter, subject=subject, username=session["username"])
 
 @app.route("/admin/delete_chapter/<chapter_id>")
+@admin_required
 def delete_chapter(chapter_id):
     chapter = Chapter.query.get_or_404(chapter_id)
     Quiz.query.filter_by(chapter_id=chapter.id).delete()
 
     db.session.delete(chapter)
     db.session.commit()
+    flash("Chapter deleted successfully!", "info")
     return redirect(url_for("admin_dash", username=session["username"]))
 
 # ==========================  QUIZ MANAGEMENT  ==========================
 
 @app.route("/admin/quiz_management")
+@admin_required
 def quiz_management():
-    if "username" not in session:
-        return "Please log in first."
-
     quizzes = Quiz.query.all()
     return render_template("admin/quiz_mng.html", username=session["username"], quizzes=quizzes)
 
 @app.route("/admin/quiz_management/add_quiz", methods=["GET", "POST"])
+@admin_required
 def add_quiz():
     if request.method == "POST":
         title = request.form.get("title")
@@ -191,13 +266,13 @@ def add_quiz():
         db.session.add(new_quiz)
         db.session.commit()
         flash("Quiz added successfully!", "success")
-
         return redirect(url_for("quiz_management", username=session["username"]))
 
     chapters = Chapter.query.all()
     return render_template("admin/add_quiz.html", username=session["username"], chapters=chapters)
 
 @app.route("/admin/quiz_management/edit_quiz/<quiz_id>", methods=["GET", "POST"])
+@admin_required
 def edit_quiz(quiz_id):
     quiz = Quiz.query.get_or_404(quiz_id)
 
@@ -214,6 +289,7 @@ def edit_quiz(quiz_id):
     return render_template("admin/edit_quiz.html", username=session["username"], quiz=quiz)
 
 @app.route("/admin/quiz_management/delete_quiz/<quiz_id>")
+@admin_required
 def delete_quiz(quiz_id):
     quiz = Quiz.query.get_or_404(quiz_id)
 
@@ -225,6 +301,7 @@ def delete_quiz(quiz_id):
     return redirect(url_for("quiz_management", username=session["username"]))
 
 @app.route("/admin/quiz_management/add_question", methods=["GET", "POST"])
+@admin_required
 def add_question():
     if request.method == "POST":
         quiz_id = request.form.get("quiz_id")
@@ -253,6 +330,7 @@ def add_question():
 
 
 @app.route("/admin/quiz_management/edit_question/<question_id>", methods=["GET", "POST"])
+@admin_required
 def edit_question(question_id):
     question = Question.query.get_or_404(question_id)
 
@@ -272,6 +350,7 @@ def edit_question(question_id):
     return render_template("admin/edit_question.html", username=session["username"], question=question)
 
 @app.route("/admin/quiz_management/delete_question/<question_id>")
+@admin_required
 def delete_question(question_id):
     question = Question.query.get_or_404(question_id)
     db.session.delete(question)
@@ -282,10 +361,13 @@ def delete_question(question_id):
 # ==========================  ADMIN SCORE MANAGEMENT  ==========================
 
 @app.route("/admin/cleanup_scores")
-def cleanup_scores():
-    if "username" not in session or session["username"] != "admin":
-        flash("Unauthorized access!", "danger")
-        return redirect(url_for("login"))
+@admin_required
+def cleanup_orphan():
+     # Find and delete all quizzes linked to deleted Chapter
+    quizzes = Quiz.query.all()
+    for quiz in quizzes:
+        if quiz.chapter is None:  # If chapter no longer exists
+            db.session.delete(quiz)
 
     # Find and delete all scores linked to deleted quizzes
     scores = Score.query.all()
@@ -293,15 +375,20 @@ def cleanup_scores():
         if score.quiz is None:  # If quiz no longer exists
             db.session.delete(score)
 
+    # Find and delete all questions linked to deleted quizzes
+    questions = Question.query.all()
+    for question in questions:
+        if question.quiz is None:
+            db.session.delete(question)
+
     db.session.commit()
+    flash("delete all quizzes, questions and scores linked to deleted chapter", "success")
     return redirect(url_for("admin_dash", username=session["username"]))
 
 
 @app.route('/admin_summary/<username>')
+@admin_required
 def admin_summary(username):
-    if "username" not in session or username != session["username"]:
-        flash("Unauthorized access!", "danger")
-        return redirect(url_for("login"))
 
     # Top scores for bar chart
     top_scores = db.session.query(
@@ -335,22 +422,16 @@ def admin_summary(username):
 # ==========================  USER DASHBOARD AND QUIZ ATTEMPT  ==========================
 
 @app.route("/user/dashboard/<username>")
+@user_required
 def user_dash(username):
-    if "username" not in session or session["username"] != username:
-        flash("Unauthorized access!", "danger")
-        return redirect(url_for("login"))
-
     subjects = Subject.query.all()
     quizzes = Quiz.query.all()
     return render_template("user/user_dash.html", username=username, subjects=subjects, quizzes=quizzes)
 
 
 @app.route("/user/attempt_quiz/<quiz_id>", methods=["GET", "POST"])
+@user_required
 def attempt_quiz(quiz_id):
-    if "username" not in session:
-        flash("Please log in first.", "danger")
-        return redirect(url_for("login"))
-
     quiz = Quiz.query.get_or_404(quiz_id)
     questions = quiz.questions
     username = session["username"]
@@ -360,15 +441,11 @@ def attempt_quiz(quiz_id):
         start_time = datetime.strptime(session.get("start_time"), "%Y-%m-%d %H:%M:%S") # type: ignore
         end_time = start_time + timedelta(seconds=duration)
         
-        if datetime.utcnow() > end_time:
-            return "Time is up! Your quiz was auto-submitted."
-            #return redirect(url_for("user_dash", username=session["username"], quiz_id=quiz_id))
-
         total_score = 0
         for question in questions:
             selected_option = request.form.get(f"question_{question.id}")
             if selected_option and int(selected_option) == question.correct_option:
-                total_score += 1
+                total_score += 5
 
         new_score = Score(
             id=generate_custom_id(Score, "SC"), # type: ignore
@@ -379,29 +456,23 @@ def attempt_quiz(quiz_id):
         db.session.add(new_score)
         db.session.commit()
 
-        return f"You have successfully attempted your quiz. You scored {total_score}/{len(questions)*5}!"
-        #return redirect(url_for("user_dash", username=username, quiz_id=quiz_id))
+        flash(f"You have successfully attempted your quiz. You scored {total_score}/{len(questions)*5}!", "info")
+        return redirect(url_for("user_dash", username=username, quiz_id=quiz_id))
 
     session["start_time"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
     return render_template("user/attempt_quiz.html", quiz=quiz, questions=questions, duration=duration, username=session["username"])
 
 
 @app.route("/user/view_quiz/<quiz_id>")
+@user_required
 def view_quiz(quiz_id):
-    if "username" not in session:
-        flash("Please log in first.", "danger")
-        return redirect(url_for("login"))
-
     quiz = Quiz.query.get_or_404(quiz_id)
     username = session["username"]
     return render_template("user/view_quiz.html", quiz=quiz, username=username)
 
 @app.route("/user/quiz_score/<username>")
+@user_required
 def quiz_score(username):
-    if "username" not in session or session["username"] != username:
-        flash("Unauthorized access!", "danger")
-        return redirect(url_for("login"))
-    
     user_id = session["user_id"]
     scores = Score.query.filter_by(user_id=user_id).all()
 
@@ -410,59 +481,48 @@ def quiz_score(username):
 # ==========================  SCORE MANAGEMENT AND QUIZ RESULT DISPLAY  ==========================
 
 @app.route('/user/quiz_summary/<username>')
+@user_required
 def quiz_summary(username):
-    if 'username' not in session or session['username'] != username:
-        flash('Unauthorized access!', 'danger')
-        return redirect(url_for('login'))
-
     user_id = session.get('user_id')
 
-    # Fetch quizzes and scores for the user
+    # Fetch user's quiz attempts and scores
     user_scores = Score.query.filter_by(user_id=user_id).all()
 
     # Count quizzes by subject
-    subject_counts = db.session.query(Subject.name, db.func.count(Quiz.id))\
-        .join(Chapter, Subject.id == Chapter.subject_id)\
-        .join(Quiz, Chapter.id == Quiz.chapter_id)\
-        .filter(Score.user_id == user_id)\
-        .group_by(Subject.name).all()
+    subject_counts = db.session.query(
+        Subject.name,
+        db.func.count(Score.quiz_id).label('quiz_count')
+    ).join(Chapter, Subject.id == Chapter.subject_id)\
+     .join(Quiz, Chapter.id == Quiz.chapter_id)\
+     .join(Score, Quiz.id == Score.quiz_id)\
+     .filter(Score.user_id == user_id)\
+     .group_by(Subject.name).all()
 
-    subject_data = {subject: count for subject, count in subject_counts}
+    # Ensure subject data is structured correctly for charts
+    subject_data = [{"subject": subject, "count": count} for subject, count in subject_counts]
 
     # Count quizzes by month
-    month_counts = db.session.query(db.func.strftime('%m', Quiz.date_of_quiz), db.func.count(Quiz.id))\
-        .join(Score, Quiz.id == Score.quiz_id)\
-        .filter(Score.user_id == user_id)\
-        .group_by(db.func.strftime('%m', Quiz.date_of_quiz)).all()
+    month_counts = db.session.query(
+        db.func.strftime('%m-%Y', Quiz.date_of_quiz).label('month'),
+        db.func.count(Score.quiz_id).label('quiz_count')
+    ).join(Score, Quiz.id == Score.quiz_id)\
+     .filter(Score.user_id == user_id)\
+     .group_by('month').all()
 
-    month_data = {month: count for month, count in month_counts}
+    # Ensure month data is structured correctly for charts
+    month_data = [{"month": month, "count": count} for month, count in month_counts]
 
     return render_template('user/quiz_summary.html', 
-                           username=username, 
-                           subject_data=subject_data, 
+                           username=username,
+                           subject_data=subject_data,
                            month_data=month_data)
-
-
-#@app.route("/user/past_attempts/<username>")
-#def past_attempts(username):
-#    if "username" not in session or session["username"] != username:
-#        flash("Unauthorized access!", "danger")
-#        return redirect(url_for("login"))
-
-#    user_scores = Score.query.filter_by(user_id=session["user_id"]).all()
-#    quizzes = {score.quiz_id: Quiz.query.get(score.quiz_id) for score in user_scores}
-
-#    return render_template("user/past_attempts.html", user_scores=user_scores, quizzes=quizzes, username=username)
 
 
 # ==========================  QUIZ TIME AND DURATION MANAGEMENT  ==========================
 
 @app.route("/user/quiz_time_check/<quiz_id>")
+@user_required
 def quiz_time_check(quiz_id):
-    if "username" not in session:
-        flash("Please log in first.", "danger")
-        return redirect(url_for("login"))
-
     quiz = Quiz.query.get_or_404(quiz_id)
     current_time = datetime.utcnow()
 
@@ -470,12 +530,14 @@ def quiz_time_check(quiz_id):
     quiz_datetime = datetime.combine(quiz.date_of_quiz, datetime.min.time())
 
     if current_time > quiz_datetime:  #quiz date with a time of 00:00:00,so both sides use datetime not only date().
-        return "This quiz is no longer available. Timeline is over!"
+        flash("This quiz is no longer available. Timeline is over!", "warning")
+        return redirect(url_for("user_dash", username=session["username"], quiz_id=quiz_id))
 
     return redirect(url_for("attempt_quiz", quiz_id=quiz_id))
 
 # ==========================  LOGOUT  ==========================
 @app.route("/logout")
+@login_required
 def logout():
     session.pop("username", None)
     flash("Logged out successfully.", "success")
@@ -483,19 +545,63 @@ def logout():
 
 # ==========================  USER MANAGEMENT  ==========================
 @app.route("/admin/users")
+@admin_required
 def users_list():
     users = User.query.all()
     return render_template("admin/users.html", users=users, username=session["username"])
 
 @app.route("/admin/delete_user/<user_id>")
+@admin_required
 def delete_user(user_id):
     user = User.query.get_or_404(user_id)
 
     if user.username == "admin":
-        return "Admin account cannot be deleted!"
+        flash("Admin account cannot be deleted!", "danger")
+        return redirect(url_for("users_list"))
 
-    db.session.delete(user)  # Delete user
+    # Delete all related scores first
+    Score.query.filter_by(user_id=user.id).delete()
+
+    # Now delete the user
+    db.session.delete(user)
     db.session.commit()
+
+    flash("User deleted successfully!", "success")
     return redirect(url_for("users_list"))
 
+
+# =========================== SEARCH FUNCTIONALITY ======================== #
+
+@app.route('/search', methods=['GET'])
+@login_required
+def search():
+    if 'username' not in session:
+        flash("Please log in to access this feature.", "danger")
+        return redirect(url_for('login'))
+
+    query = request.args.get('q', '').strip()
+    user_type = session["username"]
+
+    user_results, subject_results, quiz_results, question_results = [], [], [], []
+
+    if query:
+        search_query = f"%{query}%"
+
+        if user_type == 'admin':
+            user_results = User.query.filter((User.username.ilike(search_query)) | (User.name.ilike(search_query))).all()
+            subject_results = Subject.query.filter(Subject.name.ilike(search_query)).all()
+            quiz_results = Quiz.query.filter(Quiz.title.ilike(search_query)).all()
+            question_results = Question.query.filter(Question.question_statement.ilike(search_query)).all()
+        else:
+            subject_results = Subject.query.filter(Subject.name.ilike(search_query)).all()
+            quiz_results = Quiz.query.filter(Quiz.title.ilike(search_query)).all()
+
+    return render_template('search_results.html',
+                           query=query,
+                           user_results=user_results,
+                           subject_results=subject_results,
+                           quiz_results=quiz_results,
+                           question_results=question_results,
+                           user_type=user_type,
+                           username=session.get('username'))
 

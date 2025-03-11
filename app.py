@@ -1,5 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session
-
+from flask import Flask
 from application.models import * 
 
 app = None
@@ -15,11 +14,11 @@ def create_app():
     return app
 
 app = create_app()
-from application.controllers import * 
+from api import *
+from application.controllers import *
 
 
 
 
 if __name__ == "__main__":
     app.run(debug=True)
-

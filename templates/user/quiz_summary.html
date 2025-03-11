@@ -25,28 +25,34 @@
     </div>
 
     <script>
-        const subjectData = {{ subject_data|tojson }};
-        const monthData = {{ month_data|tojson }};
+        const subjectData = {{ subject_data|tojson|safe }};
+        const monthData = {{ month_data|tojson|safe }};
+
+        const subjectLabels = subjectData.map(item => item.subject);
+        const subjectCounts = subjectData.map(item => item.count);
 
         new Chart(document.getElementById('subjectChart'), {
             type: 'bar',
             data: {
-                labels: Object.keys(subjectData),
+                labels: subjectLabels,
                 datasets: [{
                     label: 'Number of Quizzes',
-                    data: Object.values(subjectData),
+                    data: subjectCounts,
                     backgroundColor: ['#74b9ff', '#55efc4', '#fab1a0']
                 }]
             }
         });
 
+        const monthLabels = monthData.map(item => item.month);
+        const monthCounts = monthData.map(item => item.count);
+
         new Chart(document.getElementById('monthChart'), {
             type: 'pie',
             data: {
-                labels: Object.keys(monthData),
+                labels: monthLabels,
                 datasets: [{
                     label: 'Quizzes Attempted',
-                    data: Object.values(monthData),
+                    data: monthCounts,
                     backgroundColor: ['#ff7675', '#fdcb6e', '#6c5ce7']
                 }]
             }

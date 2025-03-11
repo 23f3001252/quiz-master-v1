@@ -32,7 +32,7 @@ Admin Dashboard
                 <tr>
                     <td>{{ loop.index }}</td>
                     <td>{{ chapter.name }}</td>
-                    <td>{{ chapter.quizzes|length }}</td>
+                    <td>{{ chapter_question_map.get(chapter.id, 0) }}</td>
                     <td>
                         <a href="{{ url_for('delete_chapter', chapter_id=chapter.id) }}"
                             class="btn btn-danger">Delete</a>

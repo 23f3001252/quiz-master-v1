@@ -4,33 +4,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home page</title>
+    <title>Quiz Master | Home</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/static/user_dash.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #74ebd5, #ACB6E5);
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
 
+        nav.navbar {
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .hero-section {
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .hero-section h1 {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .hero-section p {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+        }
+
+        .btn-primary,
+        .btn-secondary {
+            padding: 12px 35px;
+            font-size: 1.2rem;
+            margin: 10px;
+            border-radius: 30px;
+        }
+
+        .carousel-item img {
+            width: 100%;
+            height: 500px;
+            object-fit: fill;
+            border-radius: 15px;
+            display: flex;
+        }
+
+        .carousel-caption {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 10px;
+        }
+    </style>
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container">
-            <!--<a class="navbar-brand" href="#">User Dashboard</a>-->
-            <div class="collapse navbar-collapse">
-                <ul class="navbar-nav me-auto">
+            <img style="height:40px; width: 40px; border-radius: 20px;" src="/static/quizlogo.png">
+            <a class="navbar-brand" href="">Quiz Master</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}">Login</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('register') }}">Register</a></li>
                 </ul>
-                <form class="d-flex">
-                    <input class="form-control me-2" type="search" placeholder="Search">
-                    <button class="btn btn-outline-success" type="submit">Search</button>
-                </form>
-                <span class="welcome-text">Welcome to Quiz master</span>
             </div>
         </div>
     </nav>
 
+    <!-- Hero Section with Carousel -->
+    <div id="quizCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            <div class="carousel-item">
+                <img src="/static/quiz3.jpg" alt="Quiz banner 3">
+                <div class="carousel-caption">
+                    <h3>Expand Your Horizons</h3>
+                    <p>Explore quizzes across various subjects and levels.</p>
+                </div>
+            </div>
+            <div class="carousel-item active">
+                <img src="/static/quiz1.png" alt="Quiz banner 1">
+                <div class="carousel-caption">
+                    <h3>Test Your Knowledge</h3>
+                    <p>Engage in challenging quizzes and learn something new every day!</p>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="/static/quiz2.png" alt="Quiz banner 1">
+                <div class="carousel-caption">
+                    <h3>Compete with Friends</h3>
+                    <p>Join exciting quiz competitions and top the leaderboard.</p>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="/static/quiz1.png" alt="Quiz banner 1">
+                <div class="carousel-caption">
+                    <h3>Expand Your Horizons</h3>
+                    <p>Explore quizzes across various subjects and levels.</p>
+                </div>
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#quizCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#quizCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
 
-    <h1>Welcome to Quiz master</h1>
-    <h3>Push yourself though atempting quiz.</h3>
-    <p>Check yourself and try to give your best.</p>
+    <div class="hero-section my-5">
+        <h1>Welcome to Quiz Master</h1>
+        <p>Push yourself by attempting quizzes and track your progress.</p>
+        <a href="{{ url_for('login') }}" class="btn btn-primary">Login</a>
+        <a href="{{ url_for('register') }}" class="btn btn-secondary">Register</a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <div style="background-color: #737a7a; height: 150px; text-align: center; justify-items: center; color: wheat;">
+        <div style="margin-top: 40px; padding: 40px;">
+            <p><b>Contact me : </b>23f3001252@ds.study.iitm.ac.in</p>
+            @copyright-2025
+        </div>
+    </div>
 </body>
+
 </html>

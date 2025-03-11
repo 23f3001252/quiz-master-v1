@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Srearch Results</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+        .search-1 {
+            width: 90%;
+            text-align: center;
+            justify-items: center;
+        }
+
+        table {
+            width: 70%;
+            text-align: center;
+            justify-items: center;
+            border-radius: 1rem;
+            margin-left: 5rem;
+        }
+
+        h2 {
+            background-color: rgb(65, 194, 65);
+            width: 90%;
+            color: black;
+            text-align: center;
+            justify-items: center;
+            padding: 10px;
+            border-radius: 1rem;
+        }
+
+        h3 {
+            background-color: rgb(38, 142, 189);
+            width: 70%;
+            text-align: center;
+            color: white;
+            padding: 6px;
+            border-radius: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="search-1">
+        <h2 class="text-center mt-4">Search Results for "{{ query }}"</h2>
+    
+        {% if user_type == 'admin' %}
+        <!-- User Results -->
+        <h3>Users</h3>
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Name</th>
+                    <th>Role</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in user_results %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.name }}</td>
+                    <td>{{ user.type }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center">No users found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    
+        <!-- Subject Results -->
+        <h3>Subjects</h3>
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for subject in subject_results %}
+                <tr>
+                    <td>{{ subject.id }}</td>
+                    <td>{{ subject.name }}</td>
+                    <td>{{ subject.description }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3" class="text-center">No subjects found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    
+        <!-- Quiz Results -->
+        <h3>Quizzes</h3>
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Chapter ID</th>
+                    <th>Scheduled Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for quiz in quiz_results %}
+                <tr>
+                    <td>{{ quiz.id }}</td>
+                    <td>{{ quiz.title }}</td>
+                    <td>{{ quiz.chapter_id }}</td>
+                    <td>{{ quiz.date_of_quiz }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center">No quizzes found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    
+        {% if user_type == 'admin' %}
+        <!-- Question Results -->
+        <h3>Questions</h3>
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Quiz ID</th>
+                    <th>Question Text</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for question in question_results %}
+                <tr>
+                    <td>{{ question.id }}</td>
+                    <td>{{ question.quiz_id }}</td>
+                    <td>{{ question.question_statement }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3" class="text-center">No questions found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    
+        <div class="text-center mt-4">
+            {% if user_type == 'admin' %}
+                <a href="{{ url_for('admin_dash', username=username) }}" class="btn btn-primary">Close</a>
+            {% else %}
+                <a href="{{ url_for('user_dash', username=username) }}" class="btn btn-primary">Close</a>
+            {% endif %}
+        </div>
+    </div>    
+</body>
+
+</html>

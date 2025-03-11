@@ -7,10 +7,13 @@ from datetime import datetime
 
 bcrypt = Bcrypt()
 
+import random
 
 def generate_custom_id(model, prefix):
-    count = model.query.count() + 1
-    return f"{prefix}{100 + count}"
+    while True:
+        unique_id = f"{prefix}{random.randint(100, 999)}"
+        if not model.query.filter_by(id=unique_id).first():
+            return unique_id
 
 class User(db.Model):
     id = db.Column(db.String(10), primary_key=True, default=lambda: generate_custom_id(User, "US"))
@@ -72,7 +75,7 @@ class Question(db.Model):
 class Score(db.Model):
     id = db.Column(db.String(10), primary_key=True, default=lambda: generate_custom_id(Score, "SC"))
     quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.id', ondelete='CASCADE'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
     time_stamp_of_attempt = db.Column(db.DateTime, default=datetime.utcnow)
     total_scored = db.Column(db.Integer, nullable=False)
 

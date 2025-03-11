@@ -5,11 +5,12 @@
             <ul class="navbar-nav me-auto">
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}">Home</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('quiz_score', username=username) }}">Quiz Score</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('user_dash', username=username) }}">Dashboard</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('quiz_summary', username=username) }}">Summary</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Logout</a></li>
             </ul>
-            <form class="d-flex">
-                <input class="form-control me-2" type="search" placeholder="Search">
+            <form class="d-flex" action="{{ url_for('search') }}" method="get">
+                <input class="form-control me-2" type="search" placeholder="Search" name="q">
                 <button class="btn btn-outline-success" type="submit">Search</button>
             </form>
             <span class="welcome-text">Welcome {{username}}</span>

@@ -154,7 +154,7 @@ def add_subject(username):
         
         if Subject.query.filter_by(name=name).first():
             flash("Subject already exists.", "danger")
-            return render_template("admin/add_subject.html", username=username)
+            return redirect(url_for("admin_dash", username=session["username"]))
 
         new_subject = Subject(id=generate_custom_id(Subject, "SB"), name=name, description=description) # type: ignore
         db.session.add(new_subject)
@@ -207,7 +207,7 @@ def add_chapter(username):
         
         chapter = Chapter.query.filter_by(name=chapter_name, subject_id=subject.id).first()
         if chapter :
-            flash("Chapter already exist.", "info")
+            flash("Chapter already exist.", "danger")
             return render_template("admin/add_chapter.html", username=username)
         
         new_chapter = Chapter(id=generate_custom_id(Chapter, "CH"), name=chapter_name, description=description, subject_id=subject.id) # type: ignore
@@ -225,6 +225,7 @@ def edit_chapter(chapter_id):
     subject = Subject.query.get_or_404(chapter.subject_id)
 
     if request.method == "POST":
+        name = request.form.get("chapter_name")
         chapter.name = request.form.get("chapter_name")
         chapter.description = request.form.get("chapter_desc")
 
@@ -262,6 +263,16 @@ def add_quiz():
         duration = request.form.get("duration")
         quiz_date = datetime.strptime(request.form.get("date"), "%Y-%m-%d") # type: ignore
 
+        Check_chapter = Chapter.query.filter_by(id=chapter_id).first() 
+        if not Check_chapter :
+            flash("Chapter is not available. Create chapter first!", "danger")
+            return redirect(url_for("quiz_management", username=session["username"]))
+        
+        check_quiz = Quiz.query.filter_by(title=title).first()
+        if check_quiz:
+            flash("Quiz has alredy exist.", "danger")
+            return redirect(url_for("quiz_management", username=session["username"]))
+        
         new_quiz = Quiz(id=generate_custom_id(Quiz, "QZ"), title=title, chapter_id=chapter_id, time_duration=duration, date_of_quiz=quiz_date) # type: ignore
         db.session.add(new_quiz)
         db.session.commit()
@@ -282,6 +293,11 @@ def edit_quiz(quiz_id):
         quiz.time_duration = request.form.get("duration")
         quiz.date_of_quiz = datetime.strptime(request.form.get("date"), "%Y-%m-%d") # type: ignore
 
+        Check_chapter = Chapter.query.filter_by(id=quiz.chapter_id).first() 
+        if not Check_chapter :
+            flash("Quiz is not available for this chapter. Create chapter first!", "danger")
+            return redirect(url_for("quiz_management", username=session["username"]))
+        
         db.session.commit()
         flash("Quiz updated successfully!", "success")
         return redirect(url_for("quiz_management", username=session["username"]))
@@ -320,6 +336,12 @@ def add_question():
             option4=request.form.get("option4"), # type: ignore
             correct_option=int(request.form.get("correct_option")), # type: ignore
         )
+        question_statement=request.form.get("question_statement")
+        Check_question = Question.query.filter_by(question_statement=question_statement).first()  # type: ignore
+        if Check_question :
+            flash("Question already available for this quiz.", "danger")
+            return redirect(url_for("quiz_management", username=session["username"]))
+   
         db.session.add(new_question)
         db.session.commit()
         flash("Question added successfully!", "success")
@@ -530,7 +552,7 @@ def quiz_time_check(quiz_id):
     quiz_datetime = datetime.combine(quiz.date_of_quiz, datetime.min.time())
 
     if current_time > quiz_datetime:  #quiz date with a time of 00:00:00,so both sides use datetime not only date().
-        flash("This quiz is no longer available. Timeline is over!", "warning")
+        flash("Timeline is over! This quiz is no longer available.", "warning")
         return redirect(url_for("user_dash", username=session["username"], quiz_id=quiz_id))
 
     return redirect(url_for("attempt_quiz", quiz_id=quiz_id))
